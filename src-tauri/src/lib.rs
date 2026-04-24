@@ -1,6 +1,12 @@
 use std::process::Command;
 use std::path::PathBuf;
 
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
 #[tauri::command]
 async fn descargar_video_cmd(url: String, format: String, quality: String, video_path: String) -> Result<String, String> {
     let script_path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -13,12 +19,21 @@ async fn descargar_video_cmd(url: String, format: String, quality: String, video
         ));
     }
 
-    let output = Command::new("python")
+    let mut command = Command::new("python");
+    command
         .arg(script_path)
         .arg(&url)
         .arg(&format)
         .arg(&quality)
-        .arg(&video_path)
+        .arg(&video_path);
+
+    #[cfg(windows)]
+    {
+        // Prevent opening a visible python.exe console window in packaged app.
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+
+    let output = command
         .output()
         .map_err(|e| format!("Error while executing Python: {}", e))?;
 
