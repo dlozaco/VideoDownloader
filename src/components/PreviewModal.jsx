@@ -2,7 +2,7 @@ import VideoPreview from "./VideoPreview";
 import { open } from "@tauri-apps/plugin-dialog";
 import { getYoutubeEmbedUrl } from "../helpers/ParseYoutubeUrl";
 
-export default function PreviewModal({ isOpen, youtubeUrl, downloadFormat, onClose, onConfirm}) {
+export default function PreviewModal({ isOpen, youtubeUrl, downloadFormat, downloadQuality, onClose, onConfirm}) {
 
     if (!isOpen) {
         return null;
@@ -32,6 +32,10 @@ export default function PreviewModal({ isOpen, youtubeUrl, downloadFormat, onClo
                 <p className="selected-format">
                 Format selected: {downloadFormat.toUpperCase()}
                 </p>
+
+                {downloadFormat === "mp4" && (
+                    <p className="selected-format">Quality selected: {downloadQuality.toUpperCase()}</p>
+                )}
 
                 <VideoPreview youtubeUrl={youtubeUrl} />
 

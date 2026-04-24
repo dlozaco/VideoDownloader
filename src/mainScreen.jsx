@@ -8,6 +8,7 @@ import FormatSelector from "./components/FormatSelector";
 export default function MainScreen() {
     const [youtubeUrl, setYoutubeUrl] = useState("");
     const [downloadFormat, setDownloadFormat] = useState("mp4");
+    const [downloadQuality, setDownloadQuality] = useState("1080");
     const [previewUrl, setPreviewUrl] = useState("");
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
@@ -27,11 +28,12 @@ export default function MainScreen() {
         setIsPreviewOpen(false);
 
         setIsDownloading(true);
-        setStatusMessage("Starting the download");
+        setStatusMessage("Downloading");
         try {
             await invoke("descargar_video_cmd", { 
                 url: previewUrl,
                 format: downloadFormat,
+                quality: downloadQuality,
                 videoPath: selectedFolder
             });
             setStatusMessage("Download complete! 🎉");
@@ -49,36 +51,41 @@ export default function MainScreen() {
         openPreview(youtubeUrl);
     };
 
+    const hasStatus = isDownloading || Boolean(statusMessage);
+
     return (
         <main className="split-layout">
         <section className="main-screen">
             <h1>Video downloader by dlozaco</h1>
-
+            <br></br>
             <form className="row" onSubmit={handleSubmit}>
                 <input
                     id="youtube-url-input"
                     type="url"
                     name="youtubeUrl"
-                    placeholder="Pega aqui la URL de YouTube"
+                    placeholder="Paste the YouTube URL"
                     value={youtubeUrl}
                     onChange={(e) => setYoutubeUrl(e.target.value)}
                     required
                     disabled={isDownloading}
                 />
                 <button type="submit" className="start-button" disabled={isDownloading}>
-                    {isDownloading ? "Cargando..." : "Start"}
+                    {isDownloading ? "Loading..." : "Start"}
                 </button>
             </form>
 
             <FormatSelector
                 downloadFormat={downloadFormat}
+                quality={downloadQuality}
                 onChange={(e) => setDownloadFormat(e.target.value)}
+                onQualityChange={(e) => setDownloadQuality(e.target.value)}
                 disabled={isDownloading}
             />
 
-            {statusMessage && (
-                <div className="status-message" style={{ marginTop: '20px', fontWeight: 'bold' }}>
-                    {statusMessage}
+            {hasStatus && (
+                <div className="status-message" role="status" aria-live="polite">
+                    {isDownloading && <span className="loading-spinner" aria-hidden="true" />}
+                    <span>{isDownloading ? "Downloading..." : statusMessage}</span>
                 </div>
             )}
         </section>
@@ -89,6 +96,7 @@ export default function MainScreen() {
             isOpen={isPreviewOpen}
             youtubeUrl={previewUrl}
             downloadFormat={downloadFormat}
+            downloadQuality={downloadQuality}
             onClose={closePreview}
             onConfirm={confirmVideo}
         />

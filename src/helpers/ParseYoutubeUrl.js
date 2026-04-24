@@ -10,7 +10,7 @@ function getYoutubeEmbedUrl(url) {
     for (const pattern of patterns) {
         const match = url.match(pattern);
         if (match?.[1]) {
-            return `https://www.youtube.com/embed/${match[1]}`;
+            return `https://www.youtube.com/embed/${match[1]}?vq=hd1080`;
         }
     }
 

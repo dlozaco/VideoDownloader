@@ -2,7 +2,7 @@ use std::process::Command;
 use std::path::PathBuf;
 
 #[tauri::command]
-async fn descargar_video_cmd(url: String, format: String, video_path: String) -> Result<String, String> {
+async fn descargar_video_cmd(url: String, format: String, quality: String, video_path: String) -> Result<String, String> {
     let script_path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../src/downloader/donwload.py");
 
@@ -17,6 +17,7 @@ async fn descargar_video_cmd(url: String, format: String, video_path: String) ->
         .arg(script_path)
         .arg(&url)
         .arg(&format)
+        .arg(&quality)
         .arg(&video_path)
         .output()
         .map_err(|e| format!("Error while executing Python: {}", e))?;
