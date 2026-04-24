@@ -1,4 +1,5 @@
 import VideoPreview from "./VideoPreview";
+import { open } from "@tauri-apps/plugin-dialog";
 import { getYoutubeEmbedUrl } from "../helpers/ParseYoutubeUrl";
 
 export default function PreviewModal({ isOpen, youtubeUrl, downloadFormat, onClose, onConfirm}) {
@@ -8,14 +9,28 @@ export default function PreviewModal({ isOpen, youtubeUrl, downloadFormat, onClo
     }
     const isValidPreview = Boolean(getYoutubeEmbedUrl(youtubeUrl));
 
+    const handleConfirm = async () => {
+        const selectedFolder = await open({
+            directory: true,
+            multiple: false,
+            title: "Selecciona la carpeta de destino"
+        });
+
+        if (!selectedFolder) {
+            return;
+        }
+
+        onConfirm(selectedFolder);
+    };
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
-                <h2>Confirmar video</h2>
-                <p>Revisa que este sea el video correcto antes de continuar.</p>
+                <h2>Confirm video</h2>
+                <p>Check if the video is correct before starting the download.</p>
 
                 <p className="selected-format">
-                Formato seleccionado: {downloadFormat.toUpperCase()}
+                Format selected: {downloadFormat.toUpperCase()}
                 </p>
 
                 <VideoPreview youtubeUrl={youtubeUrl} />
@@ -23,16 +38,16 @@ export default function PreviewModal({ isOpen, youtubeUrl, downloadFormat, onClo
                 {isValidPreview ? (
                 <div className="modal-actions">
                     <button type="button" className="secondary-button" onClick={onClose}>
-                        Cancelar
+                        Cancel
                     </button>
-                    <button type="button" className="confirm-button" onClick={onConfirm}>
-                        Confirmar
+                    <button type="button" className="confirm-button" onClick={handleConfirm}>
+                        Confirm
                     </button>
                 </div>
                 ) : (
                 <div className="modal-actions">
                     <button type="button" className="secondary-button" onClick={onClose}>
-                        Atras
+                        Back
                     </button>
                 </div>
                 )}

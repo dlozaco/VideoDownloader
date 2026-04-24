@@ -1,14 +1,49 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+use std::process::Command;
+use std::path::PathBuf;
+
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+async fn descargar_video_cmd(url: String, format: String, video_path: String) -> Result<String, String> {
+    let script_path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../src/downloader/donwload.py");
+
+    if !script_path.exists() {
+        return Err(format!(
+            "Python script not found at: {}",
+            script_path.display()
+        ));
+    }
+
+    let output = Command::new("python")
+        .arg(script_path)
+        .arg(&url)
+        .arg(&format)
+        .arg(&video_path)
+        .output()
+        .map_err(|e| format!("Error while executing Python: {}", e))?;
+
+    if output.status.success() {
+        Ok("Download completed".to_string())
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        let detail = if !stderr.is_empty() {
+            stderr
+        } else if !stdout.is_empty() {
+            stdout
+        } else {
+            format!("Python exited with status {} and no output", output.status)
+        };
+
+        Err(format!("Error in Python: {}", detail))
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![descargar_video_cmd])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
