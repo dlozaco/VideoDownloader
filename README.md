@@ -9,7 +9,7 @@ This project uses a hybrid technology stack to provide excellent performance and
 * **[Tauri](https://tauri.app/):** The main framework used to build secure and lightweight desktop apps with Rust.
 * **[React](https://reactjs.org/) + [Vite](https://vitejs.dev/):** For a fast, reactive, and modern user interface (Frontend).
 * **[Rust](https://www.rust-lang.org/):** Handles high-performance backend logic with memory safety.
-* **[Python](https://www.python.org/):** Used for media processing and downloading.
+* **yt-dlp + FFmpeg sidecars:** Bundled inside the app for media downloading and processing.
 
 ## 🛠️ Prerequisites
 
@@ -17,9 +17,7 @@ Before getting started, make sure you have the following installed on your syste
 
 1.  **Node.js** (LTS version recommended)
 2.  **Rust and Cargo** (install via [rustup](https://rustup.rs/))
-3.  **Python 3.x**
-4.  **[FFmpeg](https://ffmpeg.org/download.html):** Required to process, convert, and merge downloaded video and audio tracks. Make sure it is added to your system PATH.
-5.  **System dependencies for Tauri:** Check the [official Tauri prerequisites guide](https://tauri.app/v1/guides/getting-started/prerequisites) for your operating system (Windows, macOS, or Linux).
+3.  **System dependencies for Tauri:** Check the [official Tauri prerequisites guide](https://tauri.app/v1/guides/getting-started/prerequisites) for your operating system (Windows, macOS, or Linux).
 
 ## ⚙️ Installation
 
@@ -36,10 +34,9 @@ Follow these steps to set up the development environment:
     npm install
     ```
 
-3.  **Install Python dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+3.  **Add sidecar binaries in `src-tauri/bin`:**
+    - `yt-dlp-x86_64-pc-windows-msvc.exe`
+    - `ffmpeg-x86_64-pc-windows-msvc.exe`
 
 ## 📥 Download (End Users)
 
