@@ -14,6 +14,7 @@ export default function MainScreen() {
 
     const [isDownloading, setIsDownloading] = useState(false);
     const [statusMessage, setStatusMessage] = useState("");
+    const [downloadFolder, setDownloadFolder] = useState("");
 
     const openPreview = (youtubeLink) => {
         setPreviewUrl(youtubeLink);
@@ -37,6 +38,7 @@ export default function MainScreen() {
                 videoPath: selectedFolder
             });
             setStatusMessage("Download complete! 🎉");
+            setDownloadFolder(selectedFolder);
             setYoutubeUrl("");
         } catch (error) {
             console.error("Error in the download:", error);
@@ -86,6 +88,17 @@ export default function MainScreen() {
                 <div className="status-message" role="status" aria-live="polite">
                     {isDownloading && <span className="loading-spinner" aria-hidden="true" />}
                     <span>{isDownloading ? "Downloading..." : statusMessage}</span>
+                    {!isDownloading && statusMessage.includes("complete") && downloadFolder && (
+                        <button className="open-folder-button" onClick={async () => {
+                            try {
+                                await invoke("open_folder", { path: downloadFolder });
+                            } catch (e) {
+                                console.error("Failed to open folder:", e);
+                            }
+                        }}>
+                            Open folder
+                        </button>
+                    )}
                 </div>
             )}
         </section>

@@ -263,6 +263,19 @@ button:focus-visible {
   animation: spin 0.75s linear infinite;
 }
 
+.open-folder-button {
+  padding: 0.35rem 0.85rem;
+  font-size: 0.85rem;
+  min-width: 0;
+  border-radius: 8px;
+  border: 1px solid #c8d6ec;
+  background: #eef4ff;
+  color: #1a3557;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: none;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

@@ -248,6 +248,26 @@ async fn descargar_video_cmd(
     }
 }
 
+#[tauri::command]
+async fn open_folder(path: String) -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        Command::new("explorer")
+            .arg(&path)
+            .creation_flags(CREATE_NO_WINDOW)
+            .spawn()
+            .map_err(|e| format!("Could not open folder: {}", e))?;
+    }
+    #[cfg(not(windows))]
+    {
+        Command::new("xdg-open")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| format!("Could not open folder: {}", e))?;
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(target_os = "linux")]
@@ -257,7 +277,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![descargar_video_cmd])
+        .invoke_handler(tauri::generate_handler![descargar_video_cmd, open_folder])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
