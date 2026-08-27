@@ -37,6 +37,7 @@ Follow these steps to set up the development environment:
 3.  **Add sidecar binaries in `src-tauri/bin`:**
     - `yt-dlp-x86_64-pc-windows-msvc.exe`
     - `ffmpeg-x86_64-pc-windows-msvc.exe`
+    - `deno-x86_64-pc-windows-msvc.exe`
 
 ## 📥 Download (End Users)
 
