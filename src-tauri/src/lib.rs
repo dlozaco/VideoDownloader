@@ -29,13 +29,13 @@ fn normalize_quality(quality: &str) -> Option<&str> {
 fn build_mp4_format_selector(quality: &str) -> &'static str {
     match quality {
         "1080" => {
-            "bestvideo[ext=mp4][height=1080]+bestaudio[ext=m4a]/bestvideo*[height=1080]+bestaudio[ext=m4a]/bestvideo*[height=1080]+bestaudio[acodec^=mp4a]"
+            "bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best"
         }
         "720" => {
-            "bestvideo[ext=mp4][height=720]+bestaudio[ext=m4a]/bestvideo*[height=720]+bestaudio[ext=m4a]/bestvideo*[height=720]+bestaudio[acodec^=mp4a]"
+            "bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best"
         }
         _ => {
-            "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio[ext=m4a]/bestvideo+bestaudio[acodec^=mp4a]"
+            "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
         }
     }
 }
@@ -118,6 +118,34 @@ fn resolve_yt_dlp_path(app: &tauri::AppHandle) -> Option<PathBuf> {
     None
 }
 
+fn resolve_deno_path(app: &tauri::AppHandle) -> Option<PathBuf> {
+    let target_candidates = [
+        "deno-x86_64-pc-windows-msvc.exe",
+        "deno-x86_64-pc-windows-gnu.exe",
+        "deno.exe",
+    ];
+
+    for candidate in target_candidates {
+        if let Ok(path) = app.path().resolve(candidate, BaseDirectory::Resource) {
+            if path.exists() {
+                return Some(path);
+            }
+        }
+    }
+
+    // Dev-mode fallback: binaries in src-tauri/bin.
+    let dev_bin = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("bin");
+
+    for candidate in target_candidates {
+        let candidate_path = dev_bin.join(candidate);
+        if candidate_path.exists() {
+            return Some(candidate_path);
+        }
+    }
+
+    None
+}
+
 #[tauri::command]
 async fn descargar_video_cmd(
     app: tauri::AppHandle,
@@ -135,6 +163,8 @@ async fn descargar_video_cmd(
         .ok_or_else(|| "yt-dlp sidecar not found in app resources".to_string())?;
     let ffmpeg_path = resolve_ffmpeg_path(&app)
         .ok_or_else(|| "ffmpeg sidecar not found in app resources".to_string())?;
+    let deno_path = resolve_deno_path(&app)
+        .ok_or_else(|| "deno sidecar not found in app resources.".to_string())?;
 
     if !video_path.trim().is_empty() {
         std::fs::create_dir_all(&video_path)
@@ -143,7 +173,27 @@ async fn descargar_video_cmd(
 
     let output_template = build_output_template(extension, selected_quality, &video_path);
 
+    // Temp folder
+    let temp_dir = std::env::temp_dir().join("mi_app_downloader");
+    std::fs::create_dir_all(&temp_dir)
+        .map_err(|e| format!("Error creating temporal folder: {}", e))?;
+    
+    let deno_exe_path = temp_dir.join("deno.exe");
+    
+    if !deno_exe_path.exists() {
+        std::fs::copy(&deno_path, &deno_exe_path)
+            .map_err(|e| format!("Error copying deno.exe: {}", e))?;
+    }
+
+    // Prepare PATH
+    let mut paths = vec![temp_dir.clone()];
+    if let Some(current_path) = std::env::var_os("PATH") {
+        paths.extend(std::env::split_paths(&current_path));
+    }
+    let new_path = std::env::join_paths(paths).unwrap_or_default();
+
     let mut command = Command::new(yt_dlp_path);
+    command.env("PATH", new_path);
     command
         .arg("--no-playlist")
         .arg("--newline")
