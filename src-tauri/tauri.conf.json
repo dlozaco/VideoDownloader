@@ -33,7 +33,8 @@
     ],
     "externalBin": [
       "bin/ffmpeg",
-      "bin/yt-dlp"
+      "bin/yt-dlp",
+      "bin/deno"
     ]
   }
 }
